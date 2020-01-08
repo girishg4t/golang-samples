@@ -29,18 +29,12 @@ func main() {
 
 }
 func getCorrectAnsCount(data [][]string, limit int) int {
-	fmt.Println("limit", limit)
 	var correctAnsCount int = 0
-	reader := bufio.NewReader(os.Stdin)
+
 	for i := 0; i < len(data); i++ {
-		fmt.Printf("What is %s : ", data[i][0])
-		c1 := make(chan string, 1)
-		go func() {
-			ans, _ := reader.ReadString('\n')
-			c1 <- ans
-		}()
+		ans := askQues(data[i][0])
 		select {
-		case res := <-c1:
+		case res := <-ans:
 			if strings.TrimRight(res, "\n") == data[i][1] {
 				correctAnsCount++
 			}
@@ -49,6 +43,17 @@ func getCorrectAnsCount(data [][]string, limit int) int {
 		}
 	}
 	return correctAnsCount
+}
+
+func askQues(ques string) <-chan string {
+	reader := bufio.NewReader(os.Stdin)
+	c1 := make(chan string, 1)
+	fmt.Printf("What is %s : ", ques)
+	go func() {
+		input, _ := reader.ReadString('\n')
+		c1 <- input
+	}()
+	return c1
 }
 
 func readCSVfile(filepath string) ([][]string, error) {
