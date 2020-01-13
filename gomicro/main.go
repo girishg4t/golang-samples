@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	proto "github.com/girishg4t/golang-samples/gomicro/proto/message.proto"
+	proto "github.com/girishg4t/golang-samples/gomicro/proto/greeter.proto"
 	micro "github.com/micro/go-micro"
 )
 
@@ -18,7 +18,7 @@ func (g *Greeter) Hello(ctx context.Context, req *proto.Request, rsp *proto.Resp
 func main() {
 	// Create a new service. Optionally include some options here.
 	service := micro.NewService(
-		micro.Name("greeter"),
+		micro.Name("message"),
 	)
 
 	// Init will parse the command line flags.
