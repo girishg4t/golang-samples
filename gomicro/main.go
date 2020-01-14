@@ -1,3 +1,5 @@
+//to generate code
+//protoc --proto_path=$GOPATH/src:. --micro_out=. --go_out=. proto/greeter.proto
 package main
 
 import (
@@ -18,7 +20,7 @@ func (g *Greeter) Hello(ctx context.Context, req *proto.Request, rsp *proto.Resp
 func main() {
 	// Create a new service. Optionally include some options here.
 	service := micro.NewService(
-		micro.Name("message"),
+		micro.Name("greeter"),
 	)
 
 	// Init will parse the command line flags.
