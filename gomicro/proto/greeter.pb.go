@@ -9,12 +9,6 @@ import (
 	math "math"
 )
 
-import (
-	client "github.com/micro/go-micro/client"
-	server "github.com/micro/go-micro/server"
-	context "golang.org/x/net/context"
-)
-
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
@@ -122,61 +116,4 @@ var fileDescriptor_8a2d8b56b5ea0dd4 = []byte{
 	0x4e, 0x4e, 0xbe, 0x10, 0x87, 0x1e, 0xd4, 0x64, 0x29, 0x4e, 0x3d, 0x98, 0x21, 0x4a, 0x0c, 0x49,
 	0x6c, 0x60, 0x8b, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x9a, 0xb1, 0xab, 0xa8, 0x8f, 0x00,
 	0x00, 0x00,
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ client.Option
-var _ server.Option
-
-// Client API for Greeter service
-
-type GreeterClient interface {
-	Hello(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)
-}
-
-type greeterClient struct {
-	c           client.Client
-	serviceName string
-}
-
-func NewGreeterClient(serviceName string, c client.Client) GreeterClient {
-	if c == nil {
-		c = client.NewClient()
-	}
-	if len(serviceName) == 0 {
-		serviceName = "greeter"
-	}
-	return &greeterClient{
-		c:           c,
-		serviceName: serviceName,
-	}
-}
-
-func (c *greeterClient) Hello(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error) {
-	req := c.c.NewRequest(c.serviceName, "Greeter.Hello", in)
-	out := new(Response)
-	err := c.c.Call(ctx, req, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Server API for Greeter service
-
-type GreeterHandler interface {
-	Hello(context.Context, *Request, *Response) error
-}
-
-func RegisterGreeterHandler(s server.Server, hdlr GreeterHandler, opts ...server.HandlerOption) {
-	s.Handle(s.NewHandler(&Greeter{hdlr}, opts...))
-}
-
-type Greeter struct {
-	GreeterHandler
-}
-
-func (h *Greeter) Hello(ctx context.Context, in *Request, out *Response) error {
-	return h.GreeterHandler.Hello(ctx, in, out)
 }

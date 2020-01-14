@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	proto "github.com/girishg4t/golang-samples/gomicro/proto/greeter.proto"
+	proto "github.com/girishg4t/golang-samples/gomicro/proto"
 	micro "github.com/micro/go-micro"
 )
 
