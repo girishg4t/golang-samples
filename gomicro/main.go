@@ -13,7 +13,7 @@ import (
 type Greeter struct{}
 
 func (g *Greeter) Hello(ctx context.Context, req *proto.Request, rsp *proto.Response) error {
-	rsp.Greeting = "Hello " + req.Name
+	rsp.Greeting = "Hello : " + req.Name
 	return nil
 }
 
