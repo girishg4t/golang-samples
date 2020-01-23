@@ -1,0 +1,15 @@
+apiVersion: settings.k8s.io/v1alpha1
+kind: PodPreset
+metadata:
+  name: allow-volume-mounts
+spec:
+  selector:
+    matchLabels:
+      role: frontend
+  env:
+  volumeMounts:
+    - mountPath: "/work-dir"
+      name: workdir
+  volumes:
+    - name: workdir
+      emptyDir: {}

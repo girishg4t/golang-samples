@@ -8,6 +8,11 @@ spec:
     image: nginx
     ports:
     - containerPort: 80
+    readinessProbe:
+      httpGet:
+       port: 80
+      initialDelaySeconds: 5
+      periodSeconds: 5
     livenessProbe:
       httpGet:
        port: 80
