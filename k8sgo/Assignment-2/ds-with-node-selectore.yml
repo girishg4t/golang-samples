@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: frontend
+spec:
+  template:
+    metadata:
+      labels:
+        app: frontend-webserver
+    spec:
+      nodeSelector:
+        app: frontend-node
+      containers:
+        - name: webserver
+          image: nginx
+          ports:
+          - containerPort: 80
+
+# kubectl apply -f ds-with-node-selectore.yml - this should create daemonset with node selector as "frontend-node"
+# kubectl get pods - this should not show any pod
+# kubectl get nodes - note the name
+# kubectl label node minikube app=frontend-node - this should show the pod(ds) inside the minikube node
+# kubectl get pods - will show the ds now

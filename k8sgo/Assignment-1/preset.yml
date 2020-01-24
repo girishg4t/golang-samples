@@ -7,9 +7,6 @@ spec:
     matchLabels:
       role: frontend
   env:
-  volumeMounts:
-    - mountPath: "/work-dir"
-      name: workdir
   volumes:
     - name: workdir
       emptyDir: {}

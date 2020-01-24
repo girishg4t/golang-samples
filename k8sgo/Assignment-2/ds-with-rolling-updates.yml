@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: frontend
+spec:
+  updateStrategy: RollingUpdate
+    maxUnavailable: 1
+    minReadySeconds: 0
+  template:
+    metadata:
+      labels:
+        app: frontend-webserver
+    spec:
+      nodeSelector:
+        app: frontend-node
+      containers:
+        - name: webserver
+          image: nginx
+          ports:
+          - containerPort: 80
