@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dapi-test-pod
+spec:
+  containers:
+    - name: test-container
+      image: k8s.gcr.io/busybox
+      command: [ "/bin/sh", "-c", "cat /etc/nginx/proxy.conf && cat /etc/nginx/nginx.conf" ]
+      volumeMounts:
+      - name: nginx-proxy-config
+        mountPath: /etc/nginx/proxy.conf
+        subPath: proxy.conf
+      - name: nginx-proxy-config
+        mountPath: /etc/nginx/nginx.conf
+        subPath: nginx.conf
+  volumes:
+  - name: nginx-proxy-config
+    configMap:
+      name: nginx-proxy-conf-v1
+  restartPolicy: Never
+
+# kubectl logs dapi-test-pod
