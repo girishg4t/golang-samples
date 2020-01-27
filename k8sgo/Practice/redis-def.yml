@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"frontend","type":"front-end"},"name":"firstpod","namespace":"default"},"spec":{"containers":[{"image":"nginx","name":"nginx-container"}]}}
+  creationTimestamp: "2020-01-25T04:37:34Z"
+  labels:
+    app: frontend
+    type: front-end
+  name: firstpod
+  namespace: default
+  resourceVersion: "2266"
+  selfLink: /api/v1/namespaces/default/pods/firstpod
+  uid: 67c966f5-3f2c-11ea-9617-0800273452a0
+spec:
+  containers:
+  - image: nginx
+    imagePullPolicy: Always
+    name: nginx-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-pqc8b
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  nodeName: minikube
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: default-token-pqc8b
+    secret:
+      defaultMode: 420
+      secretName: default-token-pqc8b
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2020-01-25T04:37:34Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2020-01-25T04:37:59Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2020-01-25T04:37:34Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: docker://88abbae296ca7aead728479dc223f4ded18c43b68d2132be0024a0c6ac6e71d7
+    image: nginx:latest
+    imageID: docker-pullable://nginx@sha256:70821e443be75ea38bdf52a974fd2271babd5875b2b1964f05025981c75a6717
+    lastState: {}
+    name: nginx-container
+    ready: true
+    restartCount: 0
+    state:
+      running:
+        startedAt: "2020-01-25T04:37:58Z"
+  hostIP: 10.0.2.15
+  phase: Running
+  podIP: 172.17.0.5
+  qosClass: BestEffort
+  startTime: "2020-01-25T04:37:34Z"

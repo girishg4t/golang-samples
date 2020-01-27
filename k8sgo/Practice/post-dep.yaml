@@ -1,0 +1,90 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: "2020-01-27T04:05:26Z"
+    generateName: post-dep-5d84bb588c-
+    labels:
+      app: post-dep
+      pod-template-hash: "1840661447"
+    name: post-dep-5d84bb588c-nz6gt
+    namespace: default
+    ownerReferences:
+    - apiVersion: extensions/v1beta1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: post-dep-5d84bb588c
+      uid: 3f935a0d-40ba-11ea-a95e-0800274ccee4
+    resourceVersion: "567"
+    selfLink: /api/v1/namespaces/default/pods/post-dep-5d84bb588c-nz6gt
+    uid: 3f97329b-40ba-11ea-a95e-0800274ccee4
+  spec:
+    containers:
+    - image: postgres
+      imagePullPolicy: Always
+      name: postgres
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-fnn8t
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    nodeName: minikube
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: default-token-fnn8t
+      secret:
+        defaultMode: 420
+        secretName: default-token-fnn8t
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-01-27T04:05:26Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-01-27T04:06:01Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-01-27T04:05:26Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: docker://49b2ca4b5bbf437c0a9465305e3ade437229de11acdf276f341f665ede9497d1
+      image: postgres:latest
+      imageID: docker-pullable://postgres@sha256:3657548977d593c9ab6d70d1ffc43ceb3b5164ae07ac0f542d2ea139664eb6b3
+      lastState: {}
+      name: postgres
+      ready: true
+      restartCount: 0
+      state:
+        running:
+          startedAt: "2020-01-27T04:06:01Z"
+    hostIP: 10.0.2.15
+    phase: Running
+    podIP: 172.17.0.5
+    qosClass: BestEffort
+    startTime: "2020-01-27T04:05:26Z"
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

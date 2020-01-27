@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: post-srv
+  labels:
+    app: post-dep
+spec:
+  ports:
+  - port: 80
+    name: db
+  clusterIP: None
+  selector:
+    app: post-dep
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    type: local
+spec:
+  replicas: 2
+  serviceName: "post-srv"
+  selector:
+    matchLabels:
+      app: post-dep
+  template:
+    metadata:
+      labels:
+        app: post-dep
+    spec:
+      containers:
+      - image: postgres
+        imagePullPolicy: Always
+        name: postgres
+        volumeMounts:
+        - mountPath: /pd-db
+          name: pod-volume
+      volumes:
+      - name: pod-volume
+        hostPath:
+          # directory location on host
+          path: /data
+          # this field is optional
+          type: Directory

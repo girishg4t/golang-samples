@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    type: local
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: post-dep
+  template:
+    metadata:
+      labels:
+        app: post-dep
+    spec:
+      containers:
+      - image: postgres
+        imagePullPolicy: Always
+        name: postgres
+        volumeMounts:
+        - mountPath: /pd-db
+          name: pod-volume
+      volumes:
+      - name: pod-volume
+        hostPath:
+          # directory location on host
+          path: /data
+          # this field is optional
+          type: Directory
