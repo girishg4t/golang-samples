@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -15,7 +16,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-type service struct {
+type serviceResource struct {
 	name      string
 	stype     corev1.ServiceType
 	port      int32
@@ -30,17 +31,13 @@ var namespace string = "mynamespace"
 func main() {
 	cs = getKubeHandle()
 
-	watchlist := cache.NewListWatchFromClient(cs.AppsV1().RESTClient(), "deployments", namespace,
-		fields.Everything())
-	_, controller := cache.NewInformer(
-		watchlist,
-		&v1.Deployment{},
-		time.Second*0,
+	watchlist := cache.NewListWatchFromClient(cs.AppsV1().RESTClient(), "deployments",
+		namespace, fields.Everything())
+	_, controller := cache.NewInformer(watchlist, &v1.Deployment{}, time.Second*0,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    onAdd,
-			DeleteFunc: onDelete,
-		},
-	)
+			DeleteFunc: onDelete})
+
 	stop := make(chan struct{})
 	go controller.Run(stop)
 	for {
@@ -54,19 +51,26 @@ func onAdd(obj interface{}) {
 	if name == "" {
 		return
 	}
+	service, err := extractServiceInfoFromDeployment(dep)
+	if err != nil {
+		return
+	}
+	createService(service)
+}
 
+func extractServiceInfoFromDeployment(dep *v1.Deployment) (*serviceResource, error) {
 	metadata := dep.Spec.Template.ObjectMeta
 	spec := dep.Spec.Template.Spec
 
 	isServiceReq, _ := strconv.ParseBool(metadata.Annotations["auto-create-svc"])
 	if !isServiceReq {
-		return
+		return nil, errors.New("service not required")
 	}
 
-	serviceName = name + "-service"
-	annServiceType := metadata.Annotations["auto-create-svc-type"]
+	serviceName = dep.GetName() + "-service"
+	antServiceType := metadata.Annotations["auto-create-svc-type"]
 	serviceType := corev1.ServiceTypeClusterIP
-	if annServiceType == "NodePort" {
+	if antServiceType == "NodePort" {
 		serviceType = corev1.ServiceTypeNodePort
 	}
 	port := int32(8080)
@@ -74,20 +78,22 @@ func onAdd(obj interface{}) {
 		port = spec.Containers[0].Ports[0].ContainerPort
 	}
 
-	service := &service{namespace: namespace,
+	service := &serviceResource{namespace: namespace,
 		name:  serviceName,
 		port:  port,
 		stype: serviceType,
 		selector: map[string]string{
 			"app": "demo-app",
 		}}
-	createService(service)
+
+	return service, nil
 }
 
 func onDelete(obj interface{}) {
 	dep := obj.(*v1.Deployment)
 	name := dep.GetName()
 	if name != "" {
+		fmt.Println("Deleting service...")
 		ds := cs.CoreV1().Services(namespace)
 
 		options := &metav1.DeleteOptions{}
@@ -99,7 +105,7 @@ func onDelete(obj interface{}) {
 	}
 }
 
-func createService(s *service) {
+func createService(s *serviceResource) {
 	sc := cs.CoreV1().Services(namespace)
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
