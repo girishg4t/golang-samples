@@ -1,38 +1,40 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"strconv"
 	"time"
 
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
 
 type serviceResource struct {
-	name      string
-	stype     corev1.ServiceType
-	port      int32
-	selector  map[string]string
-	namespace string
+	name     string
+	stype    corev1.ServiceType
+	port     int32
+	selector map[string]string
+	ns       string
 }
 
-var cs *kubernetes.Clientset
-var serviceName string
-var namespace string = "mynamespace"
+type k8sServiceAPI struct {
+	cs kubernetes.Interface
+	s  *serviceResource
+}
+
+const ns string = "mynamespace"
+
+var api *k8sServiceAPI
 
 func main() {
-	cs = getKubeHandle()
+	api = &k8sServiceAPI{
+		cs: getKubeHandle(),
+	}
 
-	watchlist := cache.NewListWatchFromClient(cs.AppsV1().RESTClient(), "deployments",
-		namespace, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(api.cs.AppsV1().RESTClient(), "deployments",
+		ns, fields.Everything())
 	_, controller := cache.NewInformer(watchlist, &v1.Deployment{}, time.Second*0,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    onAdd,
@@ -48,6 +50,7 @@ func main() {
 func onAdd(obj interface{}) {
 	dep := obj.(*v1.Deployment)
 	name := dep.GetName()
+
 	if name == "" {
 		return
 	}
@@ -55,91 +58,33 @@ func onAdd(obj interface{}) {
 	if err != nil {
 		return
 	}
-	createService(service)
-}
-
-func extractServiceInfoFromDeployment(dep *v1.Deployment) (*serviceResource, error) {
-	metadata := dep.Spec.Template.ObjectMeta
-	spec := dep.Spec.Template.Spec
-
-	serviceName = dep.GetName() + "-service"
-	isServiceReq, _ := strconv.ParseBool(metadata.Annotations["auto-create-svc"])
-	if !isServiceReq {
-		return nil, errors.New("service not required")
+	api.s = service
+	exists := isServiceExists(api)
+	if exists {
+		return
 	}
-
-	antServiceType := metadata.Annotations["auto-create-svc-type"]
-	serviceType := corev1.ServiceTypeClusterIP
-	if antServiceType == "NodePort" {
-		serviceType = corev1.ServiceTypeNodePort
+	err = createService(api)
+	if err != nil {
+		panic(err)
 	}
-	port := int32(8080)
-	if spec.Containers[0].Ports != nil && len(spec.Containers[0].Ports) > 0 {
-		port = spec.Containers[0].Ports[0].ContainerPort
-	}
-
-	service := &serviceResource{namespace: namespace,
-		name:  serviceName,
-		port:  port,
-		stype: serviceType,
-		selector: map[string]string{
-			"app": "demo-app",
-		}}
-
-	return service, nil
 }
 
 func onDelete(obj interface{}) {
 	dep := obj.(*v1.Deployment)
 	name := dep.GetName()
-	if name != "" {
-		ds := cs.CoreV1().Services(namespace)
-		_, err := ds.Get(serviceName, metav1.GetOptions{})
-		if err != nil {
-			fmt.Printf("Service with name %s in namespace %s not found \n",
-				serviceName, namespace)
-			return
-		}
-		fmt.Println("Deleting service...")
-		options := &metav1.DeleteOptions{}
-		err = ds.Delete(serviceName, options)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("Deleted service %q.\n", name)
+	if name == "" {
+		return
 	}
-}
-
-func createService(s *serviceResource) {
-	sc := cs.CoreV1().Services(namespace)
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      serviceName,
-			Namespace: namespace,
-			Labels: map[string]string{
-				"app": "demo-app",
-			},
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name:       "http",
-					Port:       s.port,
-					TargetPort: intstr.FromInt(int(s.port)),
-				},
-			},
-			Selector: s.selector,
-			Type:     s.stype,
-		},
+	serviceName := name + "-service"
+	s := &serviceResource{ns: ns,
+		name: serviceName}
+	api.s = s
+	exists := isServiceExists(api)
+	if !exists {
+		return
 	}
-
-	// Create Service
-	fmt.Println("Creating service...")
-	result, err := sc.Create(service)
+	err := deleteService(api)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Created service %q.\n", result.GetObjectMeta().GetName())
 }
-
-func int32Ptr(i int32) *int32 { return &i }
