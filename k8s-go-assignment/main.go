@@ -62,12 +62,12 @@ func extractServiceInfoFromDeployment(dep *v1.Deployment) (*serviceResource, err
 	metadata := dep.Spec.Template.ObjectMeta
 	spec := dep.Spec.Template.Spec
 
+	serviceName = dep.GetName() + "-service"
 	isServiceReq, _ := strconv.ParseBool(metadata.Annotations["auto-create-svc"])
 	if !isServiceReq {
 		return nil, errors.New("service not required")
 	}
 
-	serviceName = dep.GetName() + "-service"
 	antServiceType := metadata.Annotations["auto-create-svc-type"]
 	serviceType := corev1.ServiceTypeClusterIP
 	if antServiceType == "NodePort" {
@@ -93,11 +93,16 @@ func onDelete(obj interface{}) {
 	dep := obj.(*v1.Deployment)
 	name := dep.GetName()
 	if name != "" {
-		fmt.Println("Deleting service...")
 		ds := cs.CoreV1().Services(namespace)
-
+		_, err := ds.Get(serviceName, metav1.GetOptions{})
+		if err != nil {
+			fmt.Printf("Service with name %s in namespace %s not found \n",
+				serviceName, namespace)
+			return
+		}
+		fmt.Println("Deleting service...")
 		options := &metav1.DeleteOptions{}
-		err := ds.Delete(serviceName, options)
+		err = ds.Delete(serviceName, options)
 		if err != nil {
 			panic(err)
 		}
